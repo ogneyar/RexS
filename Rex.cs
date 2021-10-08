@@ -1,8 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using System.Net;
+using System.Text;
 using System.Net.Sockets;
+using System.Collections.Generic;
+
  
 namespace HTTPServer
 {
@@ -70,6 +72,8 @@ namespace HTTPServer
                 string returndata = Encoding.UTF8.GetString (bytes);
                 
                 int indexOfChar = returndata.IndexOf("\n");
+                if (indexOfChar == -1) return;
+                
                 string line = returndata.Substring(0, indexOfChar); // GET / HTTP/1.1
 
                 // Console.WriteLine ("This is what the host returned to you: " + line);
@@ -91,8 +95,8 @@ namespace HTTPServer
                     Console.WriteLine ("Method: " + method);
                     Console.WriteLine ("Path: " + path);
 
-                    string text = "It works!";
-                    send(text);
+                    send(path);
+
                 }else send(null);
 
             }else {
@@ -107,14 +111,36 @@ namespace HTTPServer
 
         }
 
-        public void send(string text) {
+        public void send(string path) {
 
             if (netStream.CanWrite) {
                 string Html;
                 byte[] Buffer;
                 string Str;
-                if (text != null) {
-                    Html = "<html><body><h1>" + text + "</h1></body></html>";
+                string file;
+                if (path != null) {
+                    Html = "<html><body><h1>Что-то пошло не так...</h1></body></html>";
+
+                    // чтение из файла
+                    if (path == "/") file = "pages/index.html";
+                    else if (path == "/test" || path == "/test/") file = "pages/test.html";
+                    else file = "pages/error.html";
+
+                    if (File.Exists(file)) {
+                        Html = File.ReadAllText(file);
+                    }
+
+                    // using (FileStream fstream = File.OpenRead($"{path}\note.txt"))
+                    // {
+                    //     // преобразуем строку в байты
+                    //     byte[] array = new byte[fstream.Length];
+                    //     // считываем данные
+                    //     fstream.Read(array, 0, array.Length);
+                    //     // декодируем байты в строку
+                    //     string textFromFile = System.Text.Encoding.Default.GetString(array);
+                    //     Console.WriteLine($"Текст из файла: {textFromFile}");
+                    // }
+
                     // Необходимые заголовки: ответ сервера, тип и длина содержимого. После двух пустых строк - само содержимое
                     Str = "HTTP/1.1 200\r\n";
                     // Str += "Accept: */*\r\n";
