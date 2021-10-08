@@ -95,9 +95,9 @@ namespace HTTPServer
                     Console.WriteLine ("Method: " + method);
                     Console.WriteLine ("Path: " + path);
 
-                    send(path);
+                    Send(path);
 
-                }else send(null);
+                }else Send(null);
 
             }else {
                 Console.WriteLine ("You cannot read data from this stream.");
@@ -111,51 +111,65 @@ namespace HTTPServer
 
         }
 
-        public void send(string path) {
+        public void Send(string path) {
 
             if (netStream.CanWrite) {
-                string Html;
-                byte[] Buffer;
-                string Str;
+                string body = "<html><body><h1>Что-то пошло не так...</h1></body></html>";
+                string type = "html";
+                byte[] buffer;
+                string response;
                 string file;
+                // string boundary = "-------------573cf973d5228";
                 if (path != null) {
-                    Html = "<html><body><h1>Что-то пошло не так...</h1></body></html>";
-
                     // чтение из файла
-                    if (path == "/") file = "pages/index.html";
-                    else if (path == "/test" || path == "/test/") file = "pages/test.html";
-                    else file = "pages/error.html";
+                    if (path == "/") file = "html/index.html";
+                    else if (path == "/test" || path == "/test/") file = "html/test.html";
+                    else if (path == "/json" || path == "/json/") {
+                        file = "json/test.json";
+                        type = "json";
+                    }else if (path == "/jpeg" || path == "/jpeg/") {
+                        file = "jpeg/test.jpg";
+                        type = "jpeg";
+                    }else file = "html/error.html";
 
                     if (File.Exists(file)) {
-                        Html = File.ReadAllText(file);
-                    }
-
-                    // using (FileStream fstream = File.OpenRead($"{path}\note.txt"))
-                    // {
-                    //     // преобразуем строку в байты
-                    //     byte[] array = new byte[fstream.Length];
-                    //     // считываем данные
-                    //     fstream.Read(array, 0, array.Length);
-                    //     // декодируем байты в строку
-                    //     string textFromFile = System.Text.Encoding.Default.GetString(array);
-                    //     Console.WriteLine($"Текст из файла: {textFromFile}");
-                    // }
+                        if (type == "jpeg") {
+                            body = Encoding.UTF8.GetString(File.ReadAllBytes(file));
+                        }else
+                            body = File.ReadAllText(file);
+                    }else type = "html";
 
                     // Необходимые заголовки: ответ сервера, тип и длина содержимого. После двух пустых строк - само содержимое
-                    Str = "HTTP/1.1 200\r\n";
-                    // Str += "Accept: */*\r\n";
-                    // Str += "Content-Type: application/json; charset=utf-8\r\n";
-                    Str += "Content-Type: text/html; charset=utf-8\r\n";
-                    Str += "Content-Length: " + Html.Length.ToString() + "\r\n";
-                    Str += "\r\n" + Html;
+                    response = "HTTP/1.1 200\r\n";
+                    
+                    if (type == "html") response += "Content-Type: text/html; charset=utf-8\r\n";
+                    else if (type == "json") response += "Content-Type: application/json; charset=utf-8\r\n";
+                    else if (type == "jpeg") response += "Content-Type: image/jpeg\r\n";
+                    // else if (type == "jpeg") {
+                    //     response += "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
+                    // }
+
+                    response += "Content-Length: " + body.Length.ToString() + "\r\n\r\n";
+
+                    // if (type == "jpeg") {
+                    //     response += boundary + "\r\n";
+                    //     response += "Content-Disposition: form-data; name=\"file\"; filename=\"test.jpeg\"\r\n";
+                    //     response += "Content-Type: image/jpeg\r\n\r\n";
+
+                    //     response += body + "\r\n";
+                    //     response += boundary + "--";
+
+                    // }else 
+                        response += body;
+
                     // Приведем строку к виду массива байт
-                    Buffer = Encoding.UTF8.GetBytes(Str);
+                    buffer = Encoding.UTF8.GetBytes(response);
                     // Отправим его клиенту
-                    netStream.Write(Buffer,  0, Buffer.Length);
+                    netStream.Write(buffer,  0, buffer.Length);
                 }else {
-                    Str = "HTTP/1.1 200\r\n";
-                    Buffer = Encoding.UTF8.GetBytes(Str);
-                    netStream.Write(Buffer,  0, Buffer.Length);
+                    response = "HTTP/1.1 200\r\n";
+                    buffer = Encoding.UTF8.GetBytes(response);
+                    netStream.Write(buffer,  0, buffer.Length);
                 }
             }else {
                 Console.WriteLine ("You cannot write data to this stream.");
