@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Net.Sockets;
 using System.Collections.Generic;
 
@@ -116,9 +118,8 @@ namespace HTTPServer
             if (netStream.CanWrite) {
                 string body = "<html><body><h1>Что-то пошло не так...</h1></body></html>";
                 string type = "html";
-                byte[] buffer;
-                string response;
-                string file;
+                byte[] buffer, buff;
+                string response, file;
                 // string boundary = "-------------573cf973d5228";
                 if (path != null) {
                     // чтение из файла
@@ -134,7 +135,26 @@ namespace HTTPServer
 
                     if (File.Exists(file)) {
                         if (type == "jpeg") {
-                            body = Encoding.UTF8.GetString(File.ReadAllBytes(file));
+                            // body = Encoding.UTF8.GetString(File.ReadAllBytes(file));
+                            // type = "html";
+
+                            // Image image = Image.FromFile(file);
+                            // MemoryStream memoryStream = new MemoryStream();
+                            // image.Save(memoryStream, ImageFormat.Jpeg);
+                            // buff = memoryStream.ToArray();
+                
+                            buff = File.ReadAllBytes(file);
+
+                            MemoryStream ms = new MemoryStream(buff);
+                            Image returnImage = Image.FromStream(ms);
+                            returnImage.Save("jpeg/pict.jpg", ImageFormat.Jpeg);
+                           
+                           
+                            body = Encoding.UTF8.GetString(buff);
+
+                            // body = "null";
+
+                            // Console.WriteLine ("body: " + body);
                         }else
                             body = File.ReadAllText(file);
                     }else type = "html";
@@ -142,25 +162,15 @@ namespace HTTPServer
                     // Необходимые заголовки: ответ сервера, тип и длина содержимого. После двух пустых строк - само содержимое
                     response = "HTTP/1.1 200\r\n";
                     
-                    if (type == "html") response += "Content-Type: text/html; charset=utf-8\r\n";
-                    else if (type == "json") response += "Content-Type: application/json; charset=utf-8\r\n";
-                    else if (type == "jpeg") response += "Content-Type: image/jpeg\r\n";
-                    // else if (type == "jpeg") {
-                    //     response += "Content-Type: multipart/form-data; boundary=" + boundary + "\r\n";
-                    // }
+                    if (type == "html") response += "Content-Type: text/html";
+                    else if (type == "json") response += "Content-Type: application/json";
+                    else if (type == "jpeg") response += "Content-Type: image/jpeg";
+              
+                    response += "; charset=utf-8\r\n";
 
                     response += "Content-Length: " + body.Length.ToString() + "\r\n\r\n";
 
-                    // if (type == "jpeg") {
-                    //     response += boundary + "\r\n";
-                    //     response += "Content-Disposition: form-data; name=\"file\"; filename=\"test.jpeg\"\r\n";
-                    //     response += "Content-Type: image/jpeg\r\n\r\n";
-
-                    //     response += body + "\r\n";
-                    //     response += boundary + "--";
-
-                    // }else 
-                        response += body;
+                    response += body;
 
                     // Приведем строку к виду массива байт
                     buffer = Encoding.UTF8.GetBytes(response);
