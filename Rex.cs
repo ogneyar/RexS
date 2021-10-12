@@ -93,13 +93,13 @@ namespace HTTPServer
                 string path = words[1];
                 string protocol = words[2];
 
-                if (path != "/favicon.ico") {
+                // if (path != "/favicon.ico") {
                     Console.WriteLine ("Method: " + method);
                     Console.WriteLine ("Path: " + path);
 
                     Send(path);
 
-                }else Send(null);
+                // }else Send(null);
 
             }else {
                 Console.WriteLine ("You cannot read data from this stream.");
@@ -129,32 +129,40 @@ namespace HTTPServer
                         file = "json/test.json";
                         type = "json";
                     }else if (path == "/jpeg" || path == "/jpeg/") {
-                        file = "jpeg/test.jpg";
+                        // file = "jpeg/test.jpg";
+                        // type = "jpeg";
+                         file = "jpeg/index.html";
+                    }else if (path == "/jpeg/logo.jpg" || path == "/jpeg/logo.jpg/") {
+                        file = "jpeg/logo.jpg";
                         type = "jpeg";
+                        //  file = "jpeg/index.html";
+                    }else if (path == "/favicon.ico" || path == "/favicon.ico/") {
+                        file = "favicon.ico";
+                        type = "icon";
                     }else file = "html/error.html";
 
                     if (File.Exists(file)) {
-                        if (type == "jpeg") {
-                            // body = Encoding.UTF8.GetString(File.ReadAllBytes(file));
-                            // type = "html";
-
+                        if (type == "jpeg" || type == "icon") {
+                            // получение массива байт из jpeg (так)
                             // Image image = Image.FromFile(file);
                             // MemoryStream memoryStream = new MemoryStream();
                             // image.Save(memoryStream, ImageFormat.Jpeg);
                             // buff = memoryStream.ToArray();
                 
+                            // получение массива байт из jpeg (или эдак)
                             buff = File.ReadAllBytes(file);
 
-                            MemoryStream ms = new MemoryStream(buff);
-                            Image returnImage = Image.FromStream(ms);
-                            returnImage.Save("jpeg/pict.jpg", ImageFormat.Jpeg);
+                            // сохранение массива байт в jpeg
+                            // MemoryStream ms = new MemoryStream(buff);
+                            // Image returnImage = Image.FromStream(ms);
+                            // returnImage.Save("jpeg/pict.jpg", ImageFormat.Jpeg);
                            
-                           
-                            body = Encoding.UTF8.GetString(buff);
+                            // перевод массива байт в строку
+                            body = Encoding.Default.GetString(buff);
 
-                            // body = "null";
+                            // получение массива байт из jpeg и перевод массива байт в строку
+                            // body = Encoding.Default.GetString(File.ReadAllBytes(file));
 
-                            // Console.WriteLine ("body: " + body);
                         }else
                             body = File.ReadAllText(file);
                     }else type = "html";
@@ -165,6 +173,7 @@ namespace HTTPServer
                     if (type == "html") response += "Content-Type: text/html";
                     else if (type == "json") response += "Content-Type: application/json";
                     else if (type == "jpeg") response += "Content-Type: image/jpeg";
+                    else if (type == "icon") response += "Content-Type: image/x-icon";
               
                     response += "; charset=utf-8\r\n";
 
