@@ -117,7 +117,7 @@ namespace HTTPServer
             if (netStream.CanWrite) {
                 string body = "<html><body><h1>Что-то пошло не так...</h1></body></html>";
                 string type = "html";
-                byte[] buffer, buff = null;
+                byte[] buffer;
                 string response, file;
                 // string boundary = "-------------573cf973d5228";
                 if (path != null) {
@@ -148,14 +148,12 @@ namespace HTTPServer
 
                     if (File.Exists(file)) {
                         if (type == "jpeg" || type == "icon") {
+                            // byte[] buff;
                             // получение массива байт из jpeg (так)
-                            // Image image = Image.FromFile(file);
-                            Bitmap image = new Bitmap(file);
-                            MemoryStream memoryStream = new MemoryStream();
-                            image.Save(memoryStream, ImageFormat.Jpeg);
-                            buff = memoryStream.ToArray();
-
-                            // Console.WriteLine(buff.Length.ToString());
+                            // Image image = Image.FromFile(file); // Bitmap image = new Bitmap(file); // можно и так
+                            // MemoryStream memoryStream = new MemoryStream();
+                            // image.Save(memoryStream, ImageFormat.Jpeg);
+                            // buff = memoryStream.ToArray();
                 
                             // получение массива байт из jpeg (или эдак)
                             // buff = File.ReadAllBytes(file);
@@ -163,16 +161,15 @@ namespace HTTPServer
                             // сохранение массива байт в jpeg
                             // MemoryStream ms = new MemoryStream(buff);
                             // Image returnImage = Image.FromStream(ms);
-                            // returnImage.Save("jpeg/pict.jpg", ImageFormat.Jpeg);
+                            // returnImage.Save("static/img/pict.jpg", ImageFormat.Jpeg);
                            
                             // перевод массива байт в строку
-                            body = Encoding.Default.GetString(buff);
+                            // body = Encoding.Default.GetString(buff);
 
                             // получение массива байт из jpeg и перевод массива байт в строку
-                            // body = Encoding.UTF8.GetString(File.ReadAllBytes(file));
+                            body = Encoding.Default.GetString(File.ReadAllBytes(file));
 
-                        }else
-                            body = File.ReadAllText(file);
+                        }else body = File.ReadAllText(file);
                     }else type = "html";
 
                     // Необходимые заголовки: ответ сервера, тип и длина содержимого. После двух пустых строк - само содержимое
@@ -183,15 +180,14 @@ namespace HTTPServer
                     else if (type == "jpeg") response += "Content-Type: image/jpeg";
                     else if (type == "icon") response += "Content-Type: image/x-icon";
               
-                    if (type == "html" || type == "json") response += "; charset=utf-8\r\n";
+                    if (type == "html" || type == "json") response += "; charset=utf-32\r\n";
 
                     response += "Content-Length: " + body.Length.ToString() + "\r\n\r\n";
 
                     response += body;
 
                     // Приведем строку к виду массива байт
-                    if (type == "html" || type == "json") buffer = Encoding.UTF8.GetBytes(response);
-                    else buffer = Encoding.Default.GetBytes(response);
+                    buffer = Encoding.Default.GetBytes(response);
                     // Отправим его клиенту
                     netStream.Write(buffer,  0, buffer.Length);
                 }else {
@@ -200,10 +196,10 @@ namespace HTTPServer
                     netStream.Write(buffer,  0, buffer.Length);
                 }
             }else {
-                Console.WriteLine ("You cannot write data to this stream.");
+                Console.WriteLine ("Вы неможете записывать данные в этот stream.");
                 tcpClient.Close ();
 
-                // Closing the tcpClient instance does not close the network stream.
+                // Закрываем объект класса tcpClient.
                 netStream.Close ();
             }
         }
