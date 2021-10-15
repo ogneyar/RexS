@@ -1,1 +1,1 @@
-"G:\Program\Roslyn\csc" /out:Rex.exe Rex.cs
+"C:\Roslyn\csc" /out:Rex.exe Rex.cs
