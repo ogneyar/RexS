@@ -90,17 +90,17 @@ namespace HTTPServer
 
                 // Read can return anything from 0 to numBytesToRead.
                 // This method blocks until at least one byte is read.
-                netStream.Read (bytes, 0, (int)Client.ReceiveBufferSize);
+                netStream.Read(bytes, 0, (int)Client.ReceiveBufferSize);
 
                 // Returns the data received from the host to the console.
-                string returndata = Encoding.UTF8.GetString (bytes);
+                string returndata = Encoding.UTF8.GetString(bytes);
                 
                 int indexOfChar = returndata.IndexOf("\n");
                 if (indexOfChar == -1) return;
                 
                 string line = returndata.Substring(0, indexOfChar); // GET / HTTP/1.1
 
-                // Console.WriteLine ("This is what the host returned to you: " + line);
+                // Console.WriteLine("This is what the host returned to you: " + line);
                 
                 // можно таким образом достать данные из строки
                 // indexOfChar = line.IndexOf(" ");
@@ -116,18 +116,18 @@ namespace HTTPServer
                 string protocol = words[2];
 
                 if (path != "/favicon.ico") {
-                    Console.WriteLine ("Method: " + method);
-                    Console.WriteLine ("Path: " + path);
+                    Console.WriteLine("Method: " + method);
+                    Console.WriteLine("Path: " + path);
                 }
 
                 Send(path);
 
             }else {
-                Console.WriteLine ("You cannot read data from this stream.");
-                tcpClient.Close ();
+                Console.WriteLine("You cannot read data from this stream.");
+                tcpClient.Close();
 
                 // Closing the tcpClient instance does not close the network stream.
-                netStream.Close ();
+                netStream.Close();
                 return;
             }
             netStream.Close();
@@ -145,7 +145,7 @@ namespace HTTPServer
                 if (path != null) {
                     // чтение из файла
                     if (path == "/") file = "html/index.html";
-                    else if (path == "/test" || path == "/test/") file = "html/test.html";
+                    // else if (path == "/test" || path == "/test/") file = "html/test.html";
 
                     else if (path == "/json" || path == "/json/") {
 
@@ -166,7 +166,12 @@ namespace HTTPServer
                         file = "static/favicon.ico";
                         type = "icon";
 
-                    }else file = "html/error.html";
+                    }else {
+                        // надо сделать что бы любой URl работал (run/test/temp.html)
+                        file = "html/" + path.Replace("/", "") + ".html";
+                        // if (File.Exists(file)) 
+                        // file = "html/error.html";
+                    }
 
                     if (File.Exists(file)) {
                         if (type == "jpeg" || type == "icon") {
@@ -192,7 +197,10 @@ namespace HTTPServer
                             body = Encoding.Default.GetString(File.ReadAllBytes(file));
 
                         }else body = File.ReadAllText(file);
-                    }else type = "html";
+                    }else {
+                        type = "html";
+                        body = File.ReadAllText("html/error.html");
+                    }
 
                     // Необходимые заголовки: ответ сервера, тип и длина содержимого. После двух пустых строк - само содержимое
                     response = "HTTP/1.1 200\r\n";
