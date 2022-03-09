@@ -1,1 +1,1 @@
-## RexS - Server Rex on C# (s-sharp)
+# RexS - web server Rex on C#, S-sharp (in development)
